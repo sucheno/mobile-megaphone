@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mobile Megaphone</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 2em;
+      background-color: #f0f0f0;
+    }
+    button {
+      font-size: 1.5em;
+      padding: 1em 2em;
+      margin-top: 2em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Mobile Megaphone</h1>
+  <p>Press the button to start speaking!</p>
+
+  <button id="startButton">Start Megaphone</button>
+
+  <script>
+    const startButton = document.getElementById('startButton');
+
+    startButton.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 2; // Increase volume (1 = normal, >1 = louder)
+
+        source.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        startButton.disabled = true;
+        startButton.textContent = 'Megaphone Active!';
+      } catch (error) {
+        alert('Error accessing microphone: ' + error.message);
+      }
+    });
+  </script>
+
+</body>
+</html>
