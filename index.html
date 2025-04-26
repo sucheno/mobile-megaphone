@@ -22,28 +22,52 @@
 <body>
 
   <h1>Mobile Megaphone</h1>
-  <p>Press the button to start speaking!</p>
+  <p>Press On to start speaking. Press Off to stop.</p>
 
-  <button id="startButton">Start Megaphone</button>
+  <button id="toggleButton">On</button>
 
   <script>
-    const startButton = document.getElementById('startButton');
+    const toggleButton = document.getElementById('toggleButton');
+    let audioContext;
+    let stream;
+    let source;
+    let gainNode;
 
-    startButton.addEventListener('click', async () => {
+    async function startMegaphone() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioContext.createMediaStreamSource(stream);
-        const gainNode = audioContext.createGain();
-        gainNode.gain.value = 2; // Increase volume (1 = normal, >1 = louder)
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        source = audioContext.createMediaStreamSource(stream);
+        gainNode = audioContext.createGain();
+        gainNode.gain.value = 2; // Boost volume
 
         source.connect(gainNode);
         gainNode.connect(audioContext.destination);
-
-        startButton.disabled = true;
-        startButton.textContent = 'Megaphone Active!';
       } catch (error) {
         alert('Error accessing microphone: ' + error.message);
+      }
+    }
+
+    function stopMegaphone() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      if (audioContext) {
+        audioContext.close();
+      }
+    }
+
+    let isOn = false;
+
+    toggleButton.addEventListener('click', async () => {
+      if (!isOn) {
+        await startMegaphone();
+        toggleButton.textContent = 'Off';
+        isOn = true;
+      } else {
+        stopMegaphone();
+        toggleButton.textContent = 'On';
+        isOn = false;
       }
     });
   </script>
